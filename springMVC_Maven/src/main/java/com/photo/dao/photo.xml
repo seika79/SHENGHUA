@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0/EN"  "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap>
+	<typeAlias alias="photoDto" type="com.photo.dto.PhotoDto" />
+	<typeAlias alias="pageInfo" type="com.util.PageInfo" />
+	
+	<resultMap id="photoResultMap" class="com.photo.dto.PhotoDto" >
+		<result property="seqNo"	column="SEQ_NO"	/>
+		<result property="title"	column="TITLE"	/>
+		<!-- <result property="contents"	column="CONTENTS" javaType="String" jdbcType="CLOB"/> -->
+				<result property="contents"	column="CONTENTS" />
+		<result property="writer"	column="WRITER"	/>
+		<result property="loginId"	column="LOGIN_ID"/>
+		<result property="thumbnail"	column="THUMBNAIL"		/>
+		<result property="createDate"	column="CREATE_DATE"	/>
+		<result property="hit"			column="HIT"/>
+	</resultMap>
+	
+	<!--// photoCnt  -->
+	<select id="photoCnt"	resultClass="Integer">
+		SELECT	COUNT(*)
+		FROM	PHOTO
+		WHERE	DEL_YN='N'
+	</select>
+	
+	<!-- // photoList -->
+	<select id="photoList" parameterClass="pageInfo" resultMap="photoResultMap">
+		SELECT	RN
+				, SEQ_NO
+				, TITLE
+				, CONTENTS
+				, WRITER
+				, LOGIN_ID
+				, THUMBNAIL
+				, CREATE_DATE
+				, HIT
+		FROM 	(
+				SELECT	ROWNUM RN
+						, SEQ_NO
+						, TITLE
+						, CONTENTS
+						, WRITER
+						, LOGIN_ID
+						, THUMBNAIL
+						, CREATE_DATE
+						, HIT
+				FROM	(
+						SELECT	SEQ_NO
+								, TITLE
+								, CONTENTS
+								, WRITER
+								, LOGIN_ID
+								, THUMBNAIL
+								, CREATE_DATE
+								, HIT
+						FROM	PHOTO
+						WHERE	DEL_YN='N'
+						ORDER	BY	CREATE_DATE DESC
+				)
+		)WHERE	RN	BETWEEN	#start#  AND	#end#
+	</select>
+	
+	
+	<!-- // photoInsert -->
+	<insert id="photoInsert" parameterClass="photoDto">
+		INSERT	INTO	PHOTO (SEQ_NO
+								, TITLE
+								, CONTENTS
+								, WRITER
+								, LOGIN_ID
+							<isNotEmpty property="imgOrgFile">
+								, IMG_ORG_FILE
+							</isNotEmpty>
+							<isNotEmpty property="imgSavedFile">
+								, IMG_SAVED_FILE
+							</isNotEmpty>	
+							<isNotEmpty property="thumbnail">
+								, THUMBNAIL
+							</isNotEmpty>
+							<isNotEmpty property="imgYn">
+								, IMG_YN
+							</isNotEmpty>							
+								, CREATE_DATE
+								, HIT
+								, DEL_YN
+		)VALUES(				PHOTO_SEQ.NEXTVAL
+								, #title#
+								, #contents:CLOB#
+								, #writer#
+								, #loginId#
+							<isNotEmpty property="imgOrgFile">
+								, #imgOrgFile#
+							</isNotEmpty>								
+							<isNotEmpty property="imgSavedFile">
+								, #imgSavedFile#
+							</isNotEmpty>	
+							<isNotEmpty property="thumbnail">
+								, #thumbnail#
+							</isNotEmpty>	
+							<isNotEmpty property="thumbnail">
+								, #imgYn#
+							</isNotEmpty>							
+								, SYSDATE
+								, 0
+								, 'N'
+		
+		)
+	</insert>
+	
+	<!-- //photoView -->
+	<select id="photoView" parameterClass="photoDto" resultClass="photoDto">
+		SELECT	SEQ_NO			seqNo
+				, TITLE			title
+				, CONTENTS		contents
+				, WRITER		writer
+				, LOGIN_ID		loginId
+				, HIT			hit
+				, CREATE_DATE	createDate
+				, IMG_SAVED_FILE	imgSavedFile
+				, IMG_ORG_FILE		imgOrgFile
+				, THUMBNAIL			thumbnail
+				, IMG_YN			imgYn
+		FROM	PHOTO
+		WHERE	DEL_YN='N'
+		AND		SEQ_NO=#seqNo#
+		
+	</select>
+	
+	<!-- // photoDelete -->
+	<update id="photoDelete" parameterClass="photoDto">
+		UPDATE	PHOTO	SET	DEL_YN='Y'
+		WHERE	SEQ_NO=#seqNo#
+	</update>
+	
+	<!-- // photoModify -->
+	<update id="photoModify" parameterClass="photoDto">
+		UPDATE 	PHOTO	SET	TITLE=#title#
+							, CONTENTS=#contents:CLOB#
+							, WRITER=#writer#
+							, LOGIN_ID=#loginId#
+							<isNotEmpty property="imgOrgFile">
+								, IMG_ORG_FILE=#imgOrgFile#
+							</isNotEmpty>
+							<isNotEmpty property="imgSavedFile">
+								, IMG_SAVED_FILE=#imgSavedFile#
+							</isNotEmpty>	
+							<isNotEmpty property="imgYn">
+								, IMG_YN=#imgYn#
+							</isNotEmpty>													
+							<isNotEmpty property="thumbnail">
+								, THUMBNAIL=#thumbnail#
+							</isNotEmpty>							
+							, UPDATE_DATE=SYSDATE
+	 	WHERE	SEQ_NO=#seqNo#
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</sqlMap>

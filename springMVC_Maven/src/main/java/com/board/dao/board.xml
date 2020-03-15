@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0/EN"  "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap>
+	<typeAlias alias="boardDto" type="com.board.dto.BoardDto"/>
+	<typeAlias alias="pageInfo" type="com.util.PageInfo" />
+	
+	<!-- // boardResultMap -->
+	<resultMap class="boardDto" id="boardResultMap">
+		<result property="seqNo"		column="SEQ_NO"	/>
+		<result property="title"		column="TITLE"	/>
+<!-- 		<result property="contents"		column="CONTENTS"	javaType="String" jdbcType="CLOB"	/> -->
+		<result property="contents"		column="CONTENTS"		/>
+		<result property="writer"		column="WRITER"/>
+		<result property="loginId"		column="LOGIN_ID"/>
+		<result property="createDate"	column="CREATE_DATE"/>
+		<!--  result property="hit"			column="HIT"/ -->
+		<result property="fileYn"		column="FILE_YN"/>
+	</resultMap>
+	
+	
+	<!-- // boardCnt -->
+	<select id="boardCnt" parameterClass="pageInfo"  resultClass="Integer">
+		SELECT 	COUNT(*) 
+		FROM	BOARD
+		WHERE	DEL_YN='N'
+		<isNotEmpty  property="searchText" prepend="AND">
+			CONTENTS LIKE '%'|| #searchText# ||'%'
+		</isNotEmpty>
+	</select>
+	
+	<!-- // boardList -->
+	<select id="boardList" parameterClass="pageInfo" resultMap="boardResultMap">
+		SELECT	RN
+				, SEQ_NO
+				, TITLE
+				, CONTENTS
+				, WRITER
+				, LOGIN_ID
+				, CREATE_DATE
+				, HIT
+				, FILE_YN
+		FROM (	SELECT	ROWNUM 	RN
+						, SEQ_NO
+						, TITLE
+						, CONTENTS
+						, WRITER
+						, LOGIN_ID
+						, CREATE_DATE
+						, HIT
+						, FILE_YN
+				FROM	( SELECT 	SEQ_NO
+									, TITLE
+									, CONTENTS
+									, WRITER
+									, LOGIN_ID
+									, CREATE_DATE
+									, HIT
+									, FILE_YN
+							FROM	BOARD
+							WHERE	DEL_YN='N'	
+							<isNotEmpty  property="searchText" prepend="AND">
+								CONTENTS LIKE '%'|| #searchText# ||'%'
+							</isNotEmpty>
+							ORDER	BY 	CREATE_DATE	DESC			
+				)		
+		)WHERE	RN	BETWEEN #start# AND #end#
+		
+	
+	</select>
+	
+	<!-- //boardInsert -->
+	<insert id="boardInsert" parameterClass="boardDto">
+		INSERT	INTO	BOARD	(	SEQ_NO
+									, TITLE
+									, CONTENTS
+									, WRITER
+									, LOGIN_ID
+									, CREATE_DATE
+									, DEL_YN
+									<isNotEmpty property="orgFileName">
+										, ORG_FILE_NAME
+									</isNotEmpty>
+									<isNotEmpty property="savedFileName">
+										, SAVED_FILE_NAME
+									</isNotEmpty>
+									<isNotEmpty property="fileYn">
+										, FILE_YN
+									</isNotEmpty>																		
+		)VALUES(					BOARD_SEQ.NEXTVAL
+									, #title#
+									, #contents:CLOB#
+									, #writer#
+									, #loginId#
+									, SYSDATE
+									, 'N'
+									<isNotEmpty property="orgFileName">
+										, #orgFileName#
+									</isNotEmpty>	
+									<isNotEmpty property="savedFileName">
+										, #savedFileName#
+									</isNotEmpty>	
+									<isNotEmpty property="fileYn">
+										, #fileYn#
+									</isNotEmpty>																									
+		)
+	</insert>
+	
+	<update id="boardUpdate" parameterClass="boardDto">
+		UPDATE	BOARD	SET
+							 TITLE = #title#
+							, CONTENTS = #contents:CLOB#
+							<isNotEmpty property="orgFileName">
+								, ORG_FILE_NAME = #orgFileName#
+							</isNotEmpty>
+							<isNotEmpty property="savedFileName">
+								, SAVED_FILE_NAME = #savedFileName#
+							</isNotEmpty>	
+							<isNotEmpty property="fileYn">
+								, FILE_YN = #fileYn#
+							</isNotEmpty>
+		WHERE SEQ_NO = #seqNo#
+	</update>
+	
+	<!-- // boardHit -->
+	<update id="boardHit" parameterClass="boardDto">
+		UPDATE 	BOARD 	SET	HIT=1
+		WHERE 	DEL_YN='N'
+		AND		SEQ_NO=#seqNo#
+	</update>
+	<!-- // boardView -->
+	<select id="boardView" parameterClass="boardDto" resultClass="boardDto">
+		SELECT 		SEQ_NO				seqNo
+					, TITLE				title	
+					, CONTENTS			contents
+					, WRITER			writer
+					, LOGIN_ID			loginId
+					, ORG_FILE_NAME		orgFileName
+					, SAVED_FILE_NAME	savedFileName
+					, FILE_YN			fileYn
+					, CREATE_DATE		createDate
+		FROM		BOARD
+		WHERE		DEL_YN='N'
+		AND			SEQ_NO=#seqNo#
+					
+	</select>
+	
+	<!-- // mainBoardList -->
+	<select id="mainBoardList"  resultMap="boardResultMap">
+		SELECT	RN
+				, SEQ_NO
+				, TITLE
+				, CONTENTS
+				, WRITER
+				, LOGIN_ID
+				, CREATE_DATE
+				, HIT
+				, FILE_YN
+		FROM (	SELECT	ROWNUM 	RN
+						, SEQ_NO
+						, TITLE
+						, CONTENTS
+						, WRITER
+						, LOGIN_ID
+						, CREATE_DATE
+						, HIT
+						, FILE_YN
+				FROM	( SELECT 	SEQ_NO
+									, TITLE
+									, CONTENTS
+									, WRITER
+									, LOGIN_ID
+									, CREATE_DATE
+									, HIT
+									, FILE_YN
+							FROM	BOARD
+							WHERE	DEL_YN='N'	
+							ORDER	BY 	CREATE_DATE	DESC			
+				)		
+		)WHERE	RN	BETWEEN 1 AND 5
+		
+	
+	</select>	
+	
+	<!-- // boardDelete -->
+	<update id="boardDelete" parameterClass="boardDto">
+		UPDATE	BOARD	SET	DEL_YN='Y'
+		WHERE	SEQ_NO=#seqNo#
+	</update>
+	
+</sqlMap>

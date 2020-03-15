@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0/EN"  "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap>
+	<typeAlias alias="memberDto" type="com.member.dto.MemberDto" />
+	
+	<!-- // 회원가입 -->
+	<insert id="memberInsert" parameterClass="memberDto">
+		INSERT	INTO MEMBER	( 	MEMBER_SEQ
+								, LOGIN_ID
+								, USER_NAME
+								, PSWD
+								, EMAIL
+								, CREATE_DATE
+								, STATUS
+		)VALUES(				MEMBER_SEQ.NEXTVAL
+								, #loginId#
+								, #userName#
+								, #pswd#
+								, #email#
+								, SYSDATE
+								, '00'		
+		)
+	</insert>
+	
+	<!-- // 회원정보 찾기 : 로그인 -->
+	<select id="memberLogin" parameterClass="memberDto" resultClass="memberDto">
+		SELECT	MEMBER_SEQ			memberSeq
+				, LOGIN_ID		loginId
+				, USER_NAME		userName
+				, PSWD			pswd
+				, EMAIL			email
+				, STATUS		status
+		FROM	MEMBER
+		WHERE	STATUS = '00'
+		AND		LOGIN_ID=#loginId#
+		AND		PSWD=#pswd#
+	
+	</select>
+	
+	<!-- // 아이디 중복확인 -->
+	<select id="memberCheck" parameterClass="String" resultClass="String">
+		SELECT	LOGIN_ID		loginId
+		FROM	MEMBER
+		WHERE	LOGIN_ID=#loginId#
+	
+	</select>	
+</sqlMap>
